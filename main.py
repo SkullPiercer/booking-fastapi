@@ -14,6 +14,8 @@ hotels = [
 def get_hotels(
         id: int | None = Query(None, description='Айдишник'),
         title: str | None = Query(None, description='Название отеля'),
+        page: int | None = Query(1, description='Страница'),
+        per_page: int | None = Query(3, description='Отелей на транице')
 ):
     hotels_ = []
     for hotel in hotels:
@@ -22,7 +24,8 @@ def get_hotels(
         if title and hotel['title'] != title:
             continue
         hotels_.append(hotel)
-    return hotels_
+    start = (page - 1) * per_page
+    return hotels_[start: start + per_page]
 
 
 @app.post('/hotels')
