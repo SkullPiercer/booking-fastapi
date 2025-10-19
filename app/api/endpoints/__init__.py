@@ -1,0 +1,1 @@
+from app.api.endpoints.hotels import router as hotels_router
