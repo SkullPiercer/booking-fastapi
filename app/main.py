@@ -4,7 +4,6 @@ from fastapi import FastAPI
 from app.api.routers import main_router
 from app.core.config import get_settings
 
-from app.core.db import *
 
 settings = get_settings()
 
