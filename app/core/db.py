@@ -22,7 +22,7 @@ Base = declarative_base(cls=PreBase)
 async_session_maker = async_sessionmaker(
     bind=engine,
     expire_on_commit=False,
-    class_=AsyncSession    
+    class_=AsyncSession
 )
 
 async def get_async_session():
