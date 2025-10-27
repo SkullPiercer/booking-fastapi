@@ -1,0 +1,1 @@
+from app.api.examples.hotels import hotel_examples

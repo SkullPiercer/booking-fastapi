@@ -1,7 +1,12 @@
-from fastapi import APIRouter, Query, Body, status
+from fastapi import APIRouter, Query, Body, status, Depends
 from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.examples import hotel_examples
 from app.api.schemas.utils import PaginationDep
+from app.api.schemas.hotels import HotelCreateSchema
+from app.core.db import get_async_session
+from app.db.models.hotels import Hotels
 
 
 router = APIRouter()
@@ -36,14 +41,14 @@ def get_hotels(
 
 
 @router.post('/')
-def create_hotel(
-        title: str = Body(embed=True),
+async def create_hotel(
+    new_hotel: HotelCreateSchema = Body(
+        ..., openapi_examples=hotel_examples # type: ignore
+    ),
+    session: AsyncSession = Depends(get_async_session)
 ):
-    global hotels
-    hotels.append({
-        'id': hotels[-1]['id'] + 1,
-        'title': title
-    })
+    session.add(Hotels(**new_hotel.model_dump()))
+    await session.commit()
     return {'status': 'OK'}
 
 
