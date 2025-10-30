@@ -7,6 +7,7 @@ from app.api.examples import hotel_examples
 from app.api.schemas.utils import PaginationDep
 from app.api.schemas.hotels import HotelCreateSchema
 from app.core.db import get_async_session
+from app.db.crud.hotels import CRUDHotels
 from app.db.models.hotels import Hotels
 
 
@@ -21,21 +22,12 @@ async def get_hotels(
         *,
         pagination: PaginationDep
 ):
-    query = select(Hotels)
-    
-    if location:
-        query = query.where(Hotels.location.like(f'%{location}%'))
-    
-    if title:
-        query = query.where(Hotels.title.like(f'%{title}%'))
-
-    query = (
-        query
-        .limit(pagination.per_page)
-        .offset((pagination.page - 1) * pagination.per_page)
+    return await CRUDHotels(session).get_list(
+        location=location,
+        title=title,
+        limit=pagination.per_page,
+        offset=((pagination.page - 1) * pagination.per_page) 
     )
-    res = await session.execute(query)
-    return res.scalars().all()
 
 
 @router.post('/')
@@ -45,9 +37,10 @@ async def create_hotel(
     ),
     session: AsyncSession = Depends(get_async_session)
 ):
-    session.add(Hotels(**new_hotel.model_dump()))
+    hotel_db = await CRUDHotels(session).create(new_hotel)
     await session.commit()
-    return {'status': 'OK'}
+    await session.refresh(hotel_db)
+    return hotel_db
 
 
 # @router.delete('/{hotel_id}')
