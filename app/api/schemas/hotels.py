@@ -10,3 +10,8 @@ class HotelCreateSchema(BaseModel):
         if not value.strip():
             raise ValueError(f"Поле '{field.name}' не может быть пустым")
         return value
+
+
+class HotelPutSchema(BaseModel):
+    title: str
+    location: str

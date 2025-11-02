@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Query, Body, status, Depends
+from fastapi import APIRouter, Query, Body, status, Depends, Path
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.examples import hotel_examples
 from app.api.schemas.utils import PaginationDep
-from app.api.schemas.hotels import HotelCreateSchema
+from app.api.schemas.hotels import HotelCreateSchema, HotelPutSchema
 from app.core.db import get_async_session
 from app.db.crud.hotels import CRUDHotels
 from app.db.models.hotels import Hotels
@@ -39,34 +39,26 @@ async def create_hotel(
 ):
     hotel_db = await CRUDHotels(session).create(new_hotel)
     await session.commit()
-    await session.refresh(hotel_db)
     return hotel_db
 
 
-# @router.delete('/{hotel_id}')
-# def delete_hotel(hotel_id: int):
-#     global hotels
-#     hotels = [hotel for hotel in hotels if hotel['id'] != hotel_id]
-#     return {'status': 'OK'}
+@router.delete('/{hotel_id}')
+async def delete_hotel(hotel_id: int, session: AsyncSession = Depends(get_async_session)):
+    deleted_hotel = await CRUDHotels(session).delete(hotel_id)
+    await session.commit()
+    return deleted_hotel
 
 
-# @router.put('/{hotel_id}')
-# def update_hotel(
-#     hotel_id: int,
-#     title: str = Body(..., description='Название отеля'),
-#     name: str = Body(..., description='Уникальный идентификатор')
-# ):
-#     hotel = next((h for h in hotels if h['id'] == hotel_id), None)
-
-#     if not hotel:
-#         return JSONResponse(
-#             content='Отель с таким id не был найден',
-#             status_code=status.HTTP_404_NOT_FOUND
-#         )
-    
-#     hotel['title'] = title
-#     hotel['name'] = name
-#     return hotel
+@router.put('/{hotel_id}')
+async def update_hotel(
+    hotel_id: int = Path(..., ge=1, description='ID отеля'),
+    *,
+    hotel_data: HotelPutSchema,
+    session: AsyncSession = Depends(get_async_session)
+):
+    updated_hotel = await CRUDHotels(session).update_partially(hotel_id, hotel_data)
+    await session.commit()
+    return updated_hotel
     
     
 
