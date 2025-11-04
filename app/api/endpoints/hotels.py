@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.get('/hotel_id')
 async def get_hotel_by_id(
-    hotel_id: int,
+    hotel_id: int = Path(..., ge=1, description='ID отеля'),
     session: AsyncSession = Depends(get_async_session)
 ):
     return await CRUDHotels(session).get_by_one_by_filter(id=hotel_id)
@@ -48,7 +48,10 @@ async def create_hotel(
 
 
 @router.delete('/{hotel_id}')
-async def delete_hotel(hotel_id: int, session: AsyncSession = Depends(get_async_session)):
+async def delete_hotel(
+    hotel_id: int = Path(..., ge=1, description='ID отеля'),
+    session: AsyncSession = Depends(get_async_session)
+):
     deleted_hotel = await CRUDHotels(session).delete(id=hotel_id)
     await session.commit()
     return deleted_hotel
