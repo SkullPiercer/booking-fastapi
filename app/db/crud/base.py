@@ -9,8 +9,28 @@ class CRUDBase:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_list(self):
-        query = select(self.model)
+    async def get_by_one_by_filter(self, **filters):
+        query = select(self.model).filter_by(**filters)
+        result = await self.session.execute(query)
+
+        obj = result.scalars().all()
+        
+        if not obj:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Отель не найден'
+            )
+
+        if len(obj) > 1:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail='Фидьтр вернул более одного объекта'
+            )
+
+        return obj
+
+    async def get_list(self, **filters):
+        query = select(self.model).filter_by(**filters)
         result = await self.session.execute(query)
         return result.scalars().all()
     
@@ -24,8 +44,8 @@ class CRUDBase:
         result = await self.session.execute(query)
         return result.scalars().one()
     
-    async def delete(self, obj_id: int):
-        query = delete(self.model).where(self.model.id == obj_id).returning(self.model)
+    async def delete(self, **filter_by):
+        query = delete(self.model).filter_by(**filter_by).returning(self.model)
         result = await self.session.execute(query)
         
         deleted_obj = result.scalars().all()
@@ -44,11 +64,11 @@ class CRUDBase:
 
         return deleted_obj[0]
 
-    async def update_partially(self, obj_id, new_data):
+    async def update(self, new_data, partially: bool = False, **filter_by):
         query = (
             update(self.model)
-            .where(self.model.id == obj_id)
-            .values(**new_data.model_dump())
+            .filter_by(**filter_by)
+            .values(**new_data.model_dump(exclude_unset=partially))
             .returning(self.model)
         )
         result = await self.session.execute(query)

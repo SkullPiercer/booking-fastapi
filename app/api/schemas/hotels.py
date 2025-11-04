@@ -15,3 +15,8 @@ class HotelCreateSchema(BaseModel):
 class HotelPutSchema(BaseModel):
     title: str
     location: str
+
+
+class HotelPatchSchema(BaseModel):
+    title: str | None = Field(None)
+    location: str | None = Field(None)
