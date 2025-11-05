@@ -1,10 +1,12 @@
 from fastapi import status, HTTPException
 
+from pydantic import BaseModel
 from sqlalchemy import select, insert, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 class CRUDBase:
     model = None
+    schema: BaseModel = None
 
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -27,22 +29,31 @@ class CRUDBase:
                 detail='Фидьтр вернул более одного объекта'
             )
 
-        return obj
+        return self.schema.model_validate(obj[0], from_attributes=True)
 
     async def get_list(self, **filters):
         query = select(self.model).filter_by(**filters)
         result = await self.session.execute(query)
-        return result.scalars().all()
+        return [
+                self.schema.model_validate(obj, from_attributes=True)
+                for obj in result.scalars().all() 
+            ]
     
     async def get_one_or_none(self, **filter_by):
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
-        return result.scalars.one_or_none()
+        return self.schema.model_validate(
+            result.scalars.one_or_none(),
+            from_attributes=True
+        )
     
     async def create(self, obj):
         query = insert(self.model).values(**obj.model_dump()).returning(self.model)
         result = await self.session.execute(query)
-        return result.scalars().one()
+        return self.schema.model_validate(
+            result.scalars().one(),
+            from_attributes=True
+        )
     
     async def delete(self, **filter_by):
         query = delete(self.model).filter_by(**filter_by).returning(self.model)
@@ -59,10 +70,10 @@ class CRUDBase:
         if not deleted_obj:
             raise HTTPException(
                 status.HTTP_404_NOT_FOUND,
-                f'{self.model.__name__} с id={obj_id} не найден'
+                f'{self.model.__name__} с id={filter_by} не найден'
             )
 
-        return deleted_obj[0]
+        return self.schema.model_validate(deleted_obj[0],from_attributes=True)
 
     async def update(self, new_data, partially: bool = False, **filter_by):
         query = (
@@ -77,7 +88,7 @@ class CRUDBase:
         if updated_obj is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'{self.model.__name__} с id={obj_id} не найден'
+                detail=f'{self.model.__name__} с id={filter_by} не найден'
             )
 
-        return updated_obj
+        return self.schema.model_validate(updated_obj, from_attributes=True)

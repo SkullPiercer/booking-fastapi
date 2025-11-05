@@ -2,9 +2,11 @@ from sqlalchemy import select
 
 from app.db.crud.base import CRUDBase
 from app.db.models.hotels import Hotels
+from app.api.schemas.hotels import HotelDBSchema
 
 class CRUDHotels(CRUDBase):
     model = Hotels
+    schema = HotelDBSchema
 
     async def get_list(
             self,
@@ -28,4 +30,7 @@ class CRUDHotels(CRUDBase):
             )
             
             res = await self.session.execute(query)
-            return res.scalars().all()
+            return [
+                self.schema.model_validate(obj, from_attributes=True)
+                for obj in res.scalars().all() 
+            ]

@@ -12,7 +12,7 @@ from app.db.crud.hotels import CRUDHotels
 router = APIRouter()
 
 
-@router.get('/hotel_id')
+@router.get('/{hotel_id}')
 async def get_hotel_by_id(
     hotel_id: int = Path(..., ge=1, description='ID отеля'),
     session: AsyncSession = Depends(get_async_session)
