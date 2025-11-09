@@ -42,10 +42,7 @@ class CRUDBase:
     async def get_one_or_none(self, **filter_by):
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
-        return self.schema.model_validate(
-            result.scalars.one_or_none(),
-            from_attributes=True
-        )
+        return result.scalars().one_or_none()
     
     async def create(self, obj):
         query = insert(self.model).values(**obj.model_dump()).returning(self.model)

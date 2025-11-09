@@ -1,1 +1,1 @@
-from app.api.examples.hotels import hotel_examples
+from app.api.examples.hotels import hotel_examples, hotel_responses
