@@ -1,10 +1,12 @@
 from pydantic import BaseModel, EmailStr, SecretStr, model_validator
 
-
-class UserCreateSchema(BaseModel):
+class UserTokenSchema(BaseModel):
     email: EmailStr
-    password: SecretStr
-    confirm_password: SecretStr
+    password: str
+
+
+class UserCreateSchema(UserTokenSchema):
+    confirm_password: str
 
     @model_validator(mode='after')
     def check_passwords(self):
@@ -16,3 +18,7 @@ class UserCreateSchema(BaseModel):
 class UserDBSchema(BaseModel):
     id: int
     email: str
+
+
+class UserWithHashPass(BaseModel):
+    hashed_password: str

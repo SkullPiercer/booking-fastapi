@@ -1,17 +1,12 @@
 from fastapi import HTTPException, status
 
-from pwdlib import PasswordHash
-from sqlalchemy import insert
 
-from app.api.schemas.users import UserDBSchema, UserCreateSchema
+from sqlalchemy import insert, select
+
+from app.api.schemas.users import UserDBSchema, UserCreateSchema, UserWithHashPass
+from app.core.user import AuthService
 from app.db.crud.base import CRUDBase
 from app.db.models import Users
-
-
-password_hash = PasswordHash.recommended()
-
-def get_password_hash(password):
-    return password_hash.hash(password)
 
 
 class CRUDUser(CRUDBase):
@@ -31,11 +26,16 @@ class CRUDUser(CRUDBase):
             insert(self.model)
             .values(
                 email=validated_data['email'],
-                hashed_password=get_password_hash(
-                    validated_data['password'].get_secret_value()
+                hashed_password=AuthService().get_password_hash(
+                    validated_data['password']
                 )
             )
             .returning(self.model)
         )
         result = await self.session.execute(query)
         return self.schema.model_validate(result.scalars().first(), from_attributes=True)
+
+    async def get_user_with_pass(self, email: str):
+        query = select(self.model).filter_by(email=email)
+        result = await self.session.execute(query)
+        return result.scalars().one_or_none()
