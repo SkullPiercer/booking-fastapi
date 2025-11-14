@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.schemas.users import UserCreateSchema, UserTokenSchema
+from app.api.dep.user import UserIdDep
 from app.core.db import get_async_session
 from app.core.user import AuthService
 from app.db.crud.users import CRUDUser
@@ -36,20 +38,24 @@ async def create_user_token(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Проверьте правильность email и пароля'
         )
-
-    access_token = {
-        'access_token': AuthService().create_access_token({'user_id': user_db.id})
-    }
-    response.set_cookie('access_token', access_token)
-    return access_token
+    
+    access_token = AuthService().create_access_token({'user_id': user_db.id})
+    response.set_cookie(key='access_token', value=access_token)
+    return {'access_token': access_token}
 
 
-@router.get('/auth_only')
-async def get_data_auth_only(request: Request):
-    access_token = request.cookies.get('access_token', None)
-    if access_token is not None:
-        return 'ok'
-    return HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail='Пожалуйста войдите в систему!'
-    )
+@router.get('/me')
+async def get_data_auth_only(
+    user_id: UserIdDep,
+    session: AsyncSession = Depends(get_async_session)
+):
+    return await CRUDUser(session).get_one_or_none(id=user_id)
+
+
+@router.post('/logout')
+async def logout(
+    response: Response
+):
+    response.delete_cookie('access_token')
+    return 'Вы успешно вышли из системы!'
+        

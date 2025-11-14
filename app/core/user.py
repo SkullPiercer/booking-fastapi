@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 import jwt
+from fastapi import HTTPException, status
 from pwdlib import PasswordHash
 
 from app.core.config import get_settings
@@ -30,3 +31,14 @@ class AuthService():
             to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
         )
         return encoded_jwt
+
+    
+    def decode_access_token(self, data: str) -> dict:
+        try:
+            return jwt.decode(data, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        except Exception as e:
+            print(e)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Перезайдите в систему!'
+            )
