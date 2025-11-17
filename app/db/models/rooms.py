@@ -4,7 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.core.db import Base
 
 class Rooms(Base):
-    title: Mapped[str]
+    title: Mapped[str] = mapped_column(unique=True)
     description: Mapped[str | None]
     price: Mapped[int]
     quantity: Mapped[int]
