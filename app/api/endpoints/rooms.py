@@ -2,7 +2,13 @@ import sqlalchemy
 from fastapi import APIRouter, Body, Depends, HTTPException, status, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.schemas.rooms import RoomsCreateSchema, RoomsPutSchema, RoomsPatchSchema
+from app.api.schemas.rooms import (
+    RoomsCreateSchema,
+    RoomsPutSchema,
+    RoomsPatchSchema,
+    RoomsRequestSchema,
+    RoomsPatchRequest
+)
 from app.api.schemas.utils import PaginationDep
 from app.api.examples.rooms import room_examples
 from app.db.crud.rooms import CRUDRooms
@@ -10,21 +16,32 @@ from app.core.db import get_async_session
 
 router = APIRouter()
 
-@router.get('/')
+@router.get('/{hotel_id}/rooms')
 async def get_all_rooms(
+    hotel_id: int = Path(..., gt=0),
+    *,
     pagination: PaginationDep,
     session: AsyncSession = Depends(get_async_session),
 ):
-    return await CRUDRooms(session).get_list()
+    result = await CRUDRooms(session).get_list(hotel_id=hotel_id)
+    if not result:
+        raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Отель не найден!'
+            )   
+    return result
+    
 
 
-
-@router.get('/{room_id}')
+@router.get('/{hotel_id}/rooms/{room_id}')
 async def get_room_by_id(
-    room_id: int,
+    hotel_id: int = Path(..., gt=0),
+    room_id: int = Path(..., gt=0),
     session: AsyncSession = Depends(get_async_session)
 ):
-    room = await CRUDRooms(session).get_one_or_none(id=room_id)
+    room = await CRUDRooms(session).get_one_or_none(
+        id=room_id, hotel_id=hotel_id
+    )
     if room is  None:
         raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -33,13 +50,15 @@ async def get_room_by_id(
     return room
 
 
-@router.post('/')
+@router.post('/{hotel_id}/rooms')
 async def create_room(
-    new_room: RoomsCreateSchema = Body(..., openapi_examples=room_examples),
+    hotel_id: int = Path(..., gt=0),
+    new_room: RoomsRequestSchema = Body(..., openapi_examples=room_examples),
     session: AsyncSession = Depends(get_async_session)
 ):
     try:
-        room_db = await CRUDRooms(session).create(new_room)
+        _new_room = RoomsCreateSchema(hotel_id=hotel_id, **new_room.model_dump())
+        room_db = await CRUDRooms(session).create(_new_room)
         await session.commit()
         return room_db
     
@@ -52,40 +71,48 @@ async def create_room(
 
 
 
-@router.delete('/{room_id}')
+@router.delete('/{hotel_id}/rooms/{room_id}')
 async def delete_room(
+    hotel_id: int = Path(..., gt=0),
     room_id: int = Path(..., gt=0),
     session: AsyncSession = Depends(get_async_session)
 ):
-    deleted_room = await CRUDRooms(session).delete(id=room_id)
+    deleted_room = await CRUDRooms(session).delete(id=room_id, hotel_id=hotel_id)
     await session.commit()
     return deleted_room
 
 
-@router.patch('/{room_id}')
+@router.patch('/{hotel_id}/rooms/{room_id}')
 async def partially_update_room(
+    hotel_id: int = Path(..., gt=0),
     room_id: int = Path(..., gt=0),
     session: AsyncSession = Depends(get_async_session),
     *,
-    new_room_data: RoomsPatchSchema
+    new_room_data: RoomsPatchRequest
 ):
     # TODO: Добавить проверку на то что отель существует
+    _new_room_data = RoomsPatchSchema(
+        hotel_id=hotel_id,
+        **new_room_data.model_dump(exclude_unset=True)
+    )
     updated_room = await CRUDRooms(session).update(
-        new_data=new_room_data, partially=True, id=room_id
+        new_data=_new_room_data, partially=True, id=room_id, hotel_id=hotel_id
     )
     await session.commit()
     return updated_room
 
 
-@router.put('/{room_id}')
+@router.put('/{hotel_id}/rooms/{room_id}')
 async def update_room(
+    hotel_id: int = Path(..., gt=0),
     room_id: int = Path(..., gt=0),
     session: AsyncSession = Depends(get_async_session),
     *,
-    new_room_data: RoomsPutSchema
+    new_room_data: RoomsRequestSchema
 ):
+    _new_room_data = RoomsPutSchema(hotel_id=hotel_id, **new_room_data.model_dump())
     updated_room = await CRUDRooms(session).update(
-        new_data=new_room_data, id=room_id
+        new_data=_new_room_data, id=room_id
     )
     await session.commit()
     return updated_room
