@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.schemas.users import UserCreateSchema, UserTokenSchema
 from app.api.dep.user import UserIdDep
+from app.api.dep.db import DBDep
 from app.core.db import get_async_session
 from app.core.user import AuthService
 from app.db.crud.users import CRUDUser
@@ -14,19 +14,19 @@ router = APIRouter()
 @router.post('/register')
 async def create_user(
     user: UserCreateSchema,
-    session:AsyncSession = Depends(get_async_session)
+    db: DBDep
 ):
-    new_user = await CRUDUser(session).create(user)
-    await session.commit()
+    new_user = await db.users.create(user)
+    await db.commit()
     return new_user
 
 @router.post('/login')
 async def create_user_token(
     user: UserTokenSchema,
     response: Response,
-    session: AsyncSession = Depends(get_async_session)
+    db: DBDep
 ):
-    user_db = await CRUDUser(session).get_user_with_pass(email=user.email)
+    user_db = await db.users.get_user_with_pass(email=user.email)
     if user_db is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -47,9 +47,9 @@ async def create_user_token(
 @router.get('/me')
 async def get_data_auth_only(
     user_id: UserIdDep,
-    session: AsyncSession = Depends(get_async_session)
+    db: DBDep
 ):
-    return await CRUDUser(session).get_one_or_none(id=user_id)
+    return await db.users.get_one_or_none(id=user_id)
 
 
 @router.post('/logout')
