@@ -1,6 +1,5 @@
 import sqlalchemy
-from fastapi import APIRouter, Body, Depends, HTTPException, status, Path
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Body, HTTPException, status, Path
 
 from app.api.schemas.rooms import (
     RoomsCreateSchema,
@@ -12,7 +11,6 @@ from app.api.schemas.rooms import (
 from app.api.schemas.utils import PaginationDep
 from app.api.examples.rooms import room_examples
 from app.api.dep.db import DBDep
-from app.core.db import get_async_session
 
 router = APIRouter()
 
