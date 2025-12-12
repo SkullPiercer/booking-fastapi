@@ -1,16 +1,18 @@
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class BookingRequestSchema(BaseModel):
     room_id: int = Field(..., gt=0)
     date_from: date
     date_to: date
-    price: int
 
 
 class BookingCreateSchema(BookingRequestSchema):
     user_id: int
+    price: int
 
 class BookingDBSchema(BookingCreateSchema):
     id: int
+
+    model_config = ConfigDict(from_attributes=True)
