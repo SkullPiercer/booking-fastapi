@@ -20,7 +20,7 @@ class CRUDBase:
         if not obj:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail='Отель не найден'
+                detail=f'Объект {self.model} не найден'
             )
 
         if len(obj) > 1:
@@ -31,8 +31,12 @@ class CRUDBase:
 
         return self.schema.model_validate(obj[0], from_attributes=True)
 
-    async def get_list(self, **filters):
-        query = select(self.model).filter_by(**filters)
+    async def get_list(self, *filter, **filters):
+        query = (
+            select(self.model)
+            .filter(*filter)
+            .filter_by(**filters)
+        )
         result = await self.session.execute(query)
         return [
                 self.schema.model_validate(obj, from_attributes=True)

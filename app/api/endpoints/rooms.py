@@ -1,5 +1,7 @@
+from datetime import date
+
 import sqlalchemy
-from fastapi import APIRouter, Body, HTTPException, status, Path
+from fastapi import APIRouter, Body, HTTPException, status, Path, Query
 
 from app.api.schemas.rooms import (
     RoomsCreateSchema,
@@ -15,18 +17,24 @@ from app.api.dep.db import DBDep
 router = APIRouter()
 
 @router.get('/{hotel_id}/rooms')
-async def get_all_rooms(
+async def get_rooms(
     hotel_id: int = Path(..., gt=0),
+    date_from: date = Query(...),
+    date_to: date = Query(...),
     *,
     pagination: PaginationDep,
     db: DBDep
 ):
-    result = await db.rooms.get_list(hotel_id=hotel_id)
+    result = await db.rooms.get_filtered_by_date(
+        hotel_id=hotel_id,
+        date_from=date_from,
+        date_to=date_to
+    )
     if not result:
         raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail='Отель не найден!'
-            )   
+            )
     return result
     
 
