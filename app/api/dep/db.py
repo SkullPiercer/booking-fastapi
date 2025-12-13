@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from app.db.crud import CRUDHotels, CRUDUser, CRUDRooms, CRUDBookings
+from app.db.crud import CRUDHotels, CRUDUser, CRUDRooms, CRUDBookings, CRUDFacility
 from app.core.db import async_session_maker
 
 
@@ -17,6 +17,7 @@ class DBManager:
         self.users = CRUDUser(self.session)
         self.rooms = CRUDRooms(self.session)
         self.bookings = CRUDBookings(self.session)
+        self.facility = CRUDFacility(self.session)
 
         return self
 
