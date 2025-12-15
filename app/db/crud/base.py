@@ -55,6 +55,10 @@ class CRUDBase:
             result.scalars().one(),
             from_attributes=True
         )
+
+    async def create_bulk(self, obj):
+        query = insert(self.model).values([schema.model_dump() for schema in obj])
+        await self.session.execute(query)
     
     async def delete(self, **filter_by):
         query = delete(self.model).filter_by(**filter_by).returning(self.model)

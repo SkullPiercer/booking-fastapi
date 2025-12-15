@@ -3,6 +3,7 @@ from datetime import date
 import sqlalchemy
 from fastapi import APIRouter, Body, HTTPException, status, Path, Query
 
+from app.api.schemas.facilities import RoomFacilityCreateSchema
 from app.api.schemas.rooms import (
     RoomsCreateSchema,
     RoomsPutSchema,
@@ -13,6 +14,7 @@ from app.api.schemas.rooms import (
 from app.api.schemas.utils import PaginationDep
 from app.api.examples.rooms import room_examples
 from app.api.dep.db import DBDep
+from app.db.crud import facility
 
 router = APIRouter()
 
@@ -45,7 +47,7 @@ async def get_room_by_id(
     hotel_id: int = Path(..., gt=0),
     room_id: int = Path(..., gt=0),
 ):
-    room = await db.rooms.get_one_or_none(
+    room = await db.rooms.get_one_or_none_with_facilities(
         id=room_id, hotel_id=hotel_id
     )
     if room is  None:
@@ -65,14 +67,24 @@ async def create_room(
     try:
         _new_room = RoomsCreateSchema(hotel_id=hotel_id, **new_room.model_dump())
         room_db = await db.rooms.create(_new_room)
+
+        if new_room.facilities_ids:
+            # TODO: Добавить проверку на существование удобства
+            rooms_facilities = [
+                RoomFacilityCreateSchema(
+                    room_id=room_db.id, facility_id=f_id
+                ) for f_id in new_room.facilities_ids
+            ]
+            await db.rooms_facilities.create_bulk(rooms_facilities)
+
         await db.commit()
         return room_db
-    
-    except sqlalchemy.exc.IntegrityError as e:
-        # TODO: Добавить отдельный exc на дубль по title
+    except Exception as e:
+        print(e)
+        # TODO: Разделить проверку на существование отеля и дубля title
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Отеля с таким id не существует!'
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
         )
 
 
@@ -104,6 +116,10 @@ async def partially_update_room(
     updated_room = await db.rooms.update(
         new_data=_new_room_data, partially=True, id=room_id, hotel_id=hotel_id
     )
+
+    if new_room_data.facilities_ids is not None:
+        await db.rooms_facilities.update(room_id=updated_room.id, new_data=new_room_data.facilities_ids)
+
     await db.commit()
     return updated_room
 
@@ -120,5 +136,6 @@ async def update_room(
     updated_room = await db.rooms.update(
         new_data=_new_room_data, id=room_id
     )
+    await db.rooms_facilities.update(room_id=updated_room.id, new_data=new_room_data.facilities_ids)
     await db.commit()
     return updated_room
