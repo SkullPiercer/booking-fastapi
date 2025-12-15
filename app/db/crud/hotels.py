@@ -3,14 +3,15 @@ from datetime import date
 from sqlalchemy import select, func
 
 from app.db.crud.base import CRUDBase
+from app.db.crud.mappers.hotels import HotelsMapper
 from app.db.crud.utils import get_ids_for_booking
 from app.db.models import Rooms
 from app.db.models.hotels import Hotels
-from app.api.schemas.hotels import HotelDBSchema
+
 
 class CRUDHotels(CRUDBase):
     model = Hotels
-    schema = HotelDBSchema
+    mapper = HotelsMapper
 
     async def get_filtered_by_time(
             self,
@@ -44,6 +45,6 @@ class CRUDHotels(CRUDBase):
 
         res = await self.session.execute(query)
         return [
-            self.schema.model_validate(obj, from_attributes=True)
+            self.mapper.map_to_domain_entity(obj)
             for obj in res.scalars().all()
         ]

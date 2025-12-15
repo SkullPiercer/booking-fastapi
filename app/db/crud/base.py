@@ -4,9 +4,12 @@ from pydantic import BaseModel
 from sqlalchemy import select, insert, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.crud.mappers.base import DataMapper
+
+
 class CRUDBase:
     model = None
-    schema: BaseModel = None
+    mapper: DataMapper = None
 
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -29,7 +32,7 @@ class CRUDBase:
                 detail='Фидьтр вернул более одного объекта'
             )
 
-        return self.schema.model_validate(obj[0], from_attributes=True)
+        return self.mapper.map_to_domain_entity(obj[0])
 
     async def get_list(self, *filter, **filters):
         query = (
@@ -39,7 +42,7 @@ class CRUDBase:
         )
         result = await self.session.execute(query)
         return [
-                self.schema.model_validate(obj, from_attributes=True)
+                self.mapper.map_to_domain_entity(obj)
                 for obj in result.scalars().all() 
             ]
     
@@ -51,10 +54,7 @@ class CRUDBase:
     async def create(self, obj):
         query = insert(self.model).values(**obj.model_dump()).returning(self.model)
         result = await self.session.execute(query)
-        return self.schema.model_validate(
-            result.scalars().one(),
-            from_attributes=True
-        )
+        return self.mapper.map_to_domain_entity(result.scalars().one())
 
     async def create_bulk(self, obj):
         query = insert(self.model).values([schema.model_dump() for schema in obj])
@@ -78,7 +78,7 @@ class CRUDBase:
                 f'{self.model.__name__} с id={filter_by} не найден'
             )
 
-        return self.schema.model_validate(deleted_obj[0],from_attributes=True)
+        return self.mapper.map_to_domain_entity(deleted_obj[0])
 
     async def update(self, new_data, partially: bool = False, **filter_by):
         query = (
@@ -96,4 +96,4 @@ class CRUDBase:
                 detail=f'{self.model.__name__} с id={filter_by} не найден'
             )
 
-        return self.schema.model_validate(updated_obj, from_attributes=True)
+        return self.mapper.map_to_domain_entity(updated_obj)
