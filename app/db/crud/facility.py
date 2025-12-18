@@ -1,18 +1,18 @@
 from sqlalchemy import select, insert, delete
 
-from app.api.schemas.facilities import FacilityDB, RoomFacilityDB
 from app.db.crud.base import CRUDBase
+from app.db.crud.mappers.facilities import FacilitiesMapper, RoomFacilitiesMapper
 from app.db.models.facilities import Facilities, RoomsFacilities
 
 
 class CRUDFacility(CRUDBase):
     model = Facilities
-    schema = FacilityDB
+    mapper = FacilitiesMapper
 
 
 class CRUDRoomFacility(CRUDBase):
     model = RoomsFacilities
-    schema = RoomFacilityDB
+    mapper = RoomFacilitiesMapper
 
     async def update(self, room_id, new_data):
         room_facilities = (

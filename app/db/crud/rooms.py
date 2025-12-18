@@ -1,14 +1,15 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.api.schemas.rooms import RoomsDBSchema, RoomWithRels
+from app.api.schemas.rooms import RoomWithRels
 from app.db.crud.base import CRUDBase
+from app.db.crud.mappers.rooms import RoomsMapper
 from app.db.crud.utils import get_ids_for_booking
 from app.db.models import Rooms
 
 class CRUDRooms(CRUDBase):
     model = Rooms
-    schema = RoomsDBSchema
+    mapper = RoomsMapper
 
     async def get_filtered_by_date(
         self,
