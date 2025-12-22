@@ -1,13 +1,23 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI
 
 from app.api.routers import main_router
+from app.conectors.redis_connector import redis_manager
 from app.core.config import get_settings
 
 
 settings = get_settings()
 
-app = FastAPI(title=settings.APP_TITLE)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await redis_manager.connect()
+    yield
+    await redis_manager.disconnect()
+
+
+app = FastAPI(title=settings.APP_TITLE, lifespan=lifespan)
 
 app.include_router(main_router)
 
