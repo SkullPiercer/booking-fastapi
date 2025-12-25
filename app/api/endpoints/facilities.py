@@ -4,7 +4,9 @@ from fastapi import APIRouter
 
 from app.api.dep.db import DBDep
 from app.api.schemas.facilities import FacilityCreateSchema
+from app.api.tasks_app.tasks import test_task
 from app.conectors.redis_connector import redis_manager
+
 
 router = APIRouter()
 
@@ -25,6 +27,7 @@ async def create_facility(
         db: DBDep,
         new_facility: FacilityCreateSchema
 ):
+    test_task.delay()
     _new_facility = await db.facility.create(new_facility)
     await db.commit()
     return _new_facility
