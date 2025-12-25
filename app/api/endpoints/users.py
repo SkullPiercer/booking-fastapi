@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException, status, Response
+from fastapi import APIRouter, HTTPException, status, Response, UploadFile
 
 from app.api.dep.db import DBDep
 from app.api.dep.user import UserIdDep
 from app.api.schemas.users import UserCreateSchema, UserTokenSchema
+from app.api.schemas.images import ImageCreateSchema
+from app.api.schemas.utils import DownloadFileDep, delete_image
 from app.core.user import AuthService
 
 
@@ -14,6 +16,7 @@ async def create_user(
     db: DBDep
 ):
     new_user = await db.users.create(user)
+
     await db.commit()
     return new_user
 
@@ -55,4 +58,31 @@ async def logout(
 ):
     response.delete_cookie('access_token')
     return 'Вы успешно вышли из системы!'
-        
+
+
+@router.post('/{user_id}/avatar')
+async def set_avatar(
+    user_id: UserIdDep,
+    db: DBDep,
+    file: DownloadFileDep
+):
+    image = await db.images.create(ImageCreateSchema(file_path=file))
+    await db.users.update_avatar(user_id, image.id)
+    await db.commit()
+    return {'OK': True}
+
+@router.delete('/{user_id}/avatar')
+async def delete_avatar(
+    user_id: UserIdDep,
+    db: DBDep
+):
+    user = await db.users.get_one_or_none(id=user_id)
+
+    if user.image_id is not None:
+        image = await db.images.get_one_or_none(id=user.image_id)
+        await delete_image(image.file_path)
+        await db.users.update_avatar(user_id)
+        await db.images.delete(id=image.id)
+
+        await db.commit()
+    return {'OK': True}
