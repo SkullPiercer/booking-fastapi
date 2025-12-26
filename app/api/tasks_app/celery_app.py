@@ -9,3 +9,10 @@ celery_inst = Celery(
     broker=settings.CELERY_URL,
     include=['app.api.tasks_app.tasks']
 )
+
+celery_inst.conf.beat_schedule = {
+    "luboe-nazvanie": {
+        "task": "booking_today_checkin",
+        "schedule": 5,
+    }
+}

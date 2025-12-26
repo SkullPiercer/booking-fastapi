@@ -1,4 +1,4 @@
-from sqlalchemy import Integer
+from sqlalchemy import Integer, NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base, declared_attr, Mapped, mapped_column
 
@@ -16,6 +16,7 @@ class PreBase:
 
 
 engine = create_async_engine(settings.DB_URL)
+engine_null_pool = create_async_engine(settings.DB_URL, poolclass=NullPool)
 
 Base = declarative_base(cls=PreBase)
 
@@ -23,4 +24,9 @@ async_session_maker = async_sessionmaker(
     bind=engine,
     expire_on_commit=False,
     class_=AsyncSession
+)
+
+async_session_maker_null_pool = async_sessionmaker(
+    bind=engine_null_pool,
+    expire_on_commit=False
 )
