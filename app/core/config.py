@@ -1,9 +1,11 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    MODE: Literal['test', 'local', 'dev', 'prod']
     APP_TITLE: str
 
     SECRET_KEY: str
