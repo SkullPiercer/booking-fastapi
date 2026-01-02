@@ -20,6 +20,10 @@ async def async_main(check_mode):
 
 
 @pytest.fixture(scope='session', autouse=True)
+async def create_hotels(async_main):
+    pass
+
+@pytest.fixture(scope='session', autouse=True)
 async def create_user(async_main):
     async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://127.0.0.1:8002/api/v1"

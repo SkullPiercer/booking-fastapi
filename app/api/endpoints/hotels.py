@@ -53,6 +53,16 @@ async def create_hotel(
     return hotel_db
 
 
+@router.post('/bulk')
+async def create_hotels(
+    db: DBDep,
+    new_hotels: list[HotelCreateSchema],
+):
+    await db.hotels.create_bulk(new_hotels)
+    await db.commit()
+    return new_hotels
+
+
 @router.delete('/{hotel_id}')
 async def delete_hotel(
     db: DBDep,
