@@ -57,8 +57,13 @@ class CRUDBase:
         return self.mapper.map_to_domain_entity(result.scalars().one())
 
     async def create_bulk(self, obj):
-        query = insert(self.model).values([schema.model_dump() for schema in obj])
-        await self.session.execute(query)
+        query = (
+            insert(self.model)
+            .values([schema.model_dump() for schema in obj])
+            .returning(self.model)
+        )
+        result = await self.session.execute(query)
+        return [row[0] for row in result.fetchall()]
     
     async def delete(self, **filter_by):
         query = delete(self.model).filter_by(**filter_by).returning(self.model)

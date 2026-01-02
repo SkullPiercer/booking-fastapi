@@ -1,3 +1,8 @@
+import json
+
+import aiofiles
+from pathlib import Path
+
 import pytest
 from fastapi import status
 from httpx import ASGITransport, AsyncClient
@@ -5,6 +10,12 @@ from httpx import ASGITransport, AsyncClient
 from app.main import app
 from app.core.db import Base, engine_null_pool
 from app.core.config import get_settings
+from tests.utils import read_file
+
+
+BASE_DIR = Path(__file__).resolve().parent
+HOTELS_FIXTURE_PATH = BASE_DIR / "hotels_fixture.json"
+ROOMS_FIXTURE_PATH = BASE_DIR / "rooms_fixture.json"
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -19,25 +30,45 @@ async def async_main(check_mode):
         await conn.run_sync(Base.metadata.create_all)
 
 
-@pytest.fixture(scope='session', autouse=True)
-async def create_hotels(async_main):
-    pass
-
-@pytest.fixture(scope='session', autouse=True)
-async def create_user(async_main):
+@pytest.fixture(scope="session")
+async def async_client(async_main):
     async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://127.0.0.1:8002/api/v1"
-    ) as ac:
-        response = await ac.post(
-            url='/users/register',
-            json={
-                'email': 'sasha@mail.ru',
-                'password': 'qweqwerty',
-                'confirm_password': 'qweqwerty'
-            },
-        )
-        assert response.status_code == status.HTTP_200_OK
+        transport=ASGITransport(app=app),
+        base_url="http://test/api/v1",
+    ) as client:
+        yield client
 
-        response_data = response.json()
-        assert response_data['email'] == 'sasha@mail.ru'
-        assert response_data['id'] == 1
+
+@pytest.fixture(scope='session', autouse=True)
+async def create_hotels(async_client):
+    hotels = await read_file(HOTELS_FIXTURE_PATH)
+    await async_client.post(
+        url='/hotels/bulk',
+        json=hotels
+    )
+
+
+@pytest.fixture(scope='session', autouse=True)
+async def create_rooms(async_client):
+    rooms = await read_file(HOTELS_FIXTURE_PATH)
+    await async_client.post(
+        url='/hotels/bulk',
+        json=rooms
+    )
+
+
+@pytest.fixture(scope='session', autouse=True)
+async def create_user(async_client):
+    response = await async_client.post(
+        url='/users/register',
+        json={
+            'email': 'sasha@mail.ru',
+            'password': 'qweqwerty',
+            'confirm_password': 'qweqwerty'
+        },
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    response_data = response.json()
+    assert response_data['email'] == 'sasha@mail.ru'
+    assert response_data['id'] == 1
