@@ -105,7 +105,7 @@ async def create_rooms(
         rooms_facilities = [
             RoomFacilityCreateSchema(room_id=room.id, facility_id=facility_id)
             for room, input_room in zip(new_rooms_db, new_rooms)
-            for facility_id in getattr(input_room, 'facilities_ids', [])
+            for facility_id in (input_room.facilities_ids or [])
         ]
 
         if rooms_facilities:

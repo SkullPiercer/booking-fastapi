@@ -31,3 +31,13 @@ async def create_facility(
     _new_facility = await db.facility.create(new_facility)
     await db.commit()
     return _new_facility
+
+
+@router.post('/bulk')
+async def create_facilities(
+        db: DBDep,
+        new_facilities: list[FacilityCreateSchema]
+):
+    _new_facilities = await db.facility.create_bulk(new_facilities)
+    await db.commit()
+    return _new_facilities

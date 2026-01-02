@@ -1,7 +1,5 @@
-import json
-
-import aiofiles
 from pathlib import Path
+from random import randint
 
 import pytest
 from fastapi import status
@@ -16,6 +14,7 @@ from tests.utils import read_file
 BASE_DIR = Path(__file__).resolve().parent
 HOTELS_FIXTURE_PATH = BASE_DIR / "hotels_fixture.json"
 ROOMS_FIXTURE_PATH = BASE_DIR / "rooms_fixture.json"
+FACILIES_FIXTURE_PATH = BASE_DIR / "facilities_fixture.json"
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -49,13 +48,26 @@ async def create_hotels(async_client):
 
 
 @pytest.fixture(scope='session', autouse=True)
-async def create_rooms(async_client):
-    rooms = await read_file(HOTELS_FIXTURE_PATH)
+async def create_rooms(
+    async_client,
+    create_facilities,
+    create_hotels
+):
+    rooms = await read_file(ROOMS_FIXTURE_PATH)
     await async_client.post(
-        url='/hotels/bulk',
+        url=f'hotels/{randint(1, 20)}/rooms/bulk',
         json=rooms
     )
 
+
+
+@pytest.fixture(scope='session', autouse=True)
+async def create_facilities(async_client):
+    facilities = await read_file(FACILIES_FIXTURE_PATH)
+    await async_client.post(
+        url='/facilities/bulk',
+        json=facilities
+    )
 
 @pytest.fixture(scope='session', autouse=True)
 async def create_user(async_client):
