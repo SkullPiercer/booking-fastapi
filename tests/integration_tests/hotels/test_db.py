@@ -1,6 +1,6 @@
 from app.api.dep.db import DBManager
 from app.api.schemas.hotels import HotelCreateSchema
-from app.core.db import async_session_maker
+from app.core.db import async_session_maker_null_pool
 
 
 async def test_create_hotel():
@@ -9,7 +9,7 @@ async def test_create_hotel():
         location='Планета земля'
     )
 
-    async with DBManager(session_factory=async_session_maker) as db:
+    async with DBManager(session_factory=async_session_maker_null_pool) as db:
         new_hotel = await db.hotels.create(hotel_data)
         await db.commit()
         print(f'{new_hotel=}')
