@@ -5,8 +5,12 @@ import pytest
 from fastapi import status
 from httpx import ASGITransport, AsyncClient
 
+from app.api.dep.db import DBManager
+from app.api.schemas.hotels import HotelCreateSchema
+from app.api.schemas.rooms import RoomsCreateSchema
+from app.api.schemas.users import UserCreateSchema
 from app.main import app
-from app.core.db import Base, engine_null_pool
+from app.core.db import Base, engine_null_pool, async_session_maker_null_pool
 from app.core.config import get_settings
 from tests.utils import read_file
 
@@ -20,6 +24,12 @@ FACILIES_FIXTURE_PATH = BASE_DIR / "facilities_fixture.json"
 @pytest.fixture(scope='session', autouse=True)
 async def check_mode():
     assert get_settings().MODE == 'test'
+
+
+@pytest.fixture()
+async def db():
+    async with DBManager(session_factory=async_session_maker_null_pool) as db:
+        yield db
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -60,7 +70,6 @@ async def create_rooms(
     )
 
 
-
 @pytest.fixture(scope='session', autouse=True)
 async def create_facilities(async_client):
     facilities = await read_file(FACILIES_FIXTURE_PATH)
@@ -69,8 +78,47 @@ async def create_facilities(async_client):
         json=facilities
     )
 
+@pytest.fixture()
+async def user(db):
+    user = await db.users.create(
+        UserCreateSchema(
+            email="test_user@mail.ru",
+            password='qwerty',
+            confirm_password='qwerty'
+        )
+    )
+    await db.commit()
+    return user
+
+
+@pytest.fixture()
+async def hotel(db):
+    hotel = await db.hotels.create(
+        HotelCreateSchema(
+            title='Ну крутой отель',
+            location='И крутое описание'
+        )
+    )
+    await db.commit()
+    return hotel
+
+@pytest.fixture()
+async def room(db, hotel):
+    room = await db.rooms.create(
+        RoomsCreateSchema(
+            hotel_id=hotel.id,
+            title='Крутая комната',
+            description='Не менее крутое описание комнаты',
+            price=1000,
+            quantity=10
+        )
+    )
+    await db.commit()
+    return room
+
+
 @pytest.fixture(scope='session', autouse=True)
-async def create_user(async_client):
+async def root_user(async_client):
     response = await async_client.post(
         url='/users/register',
         json={
@@ -84,3 +132,5 @@ async def create_user(async_client):
     response_data = response.json()
     assert response_data['email'] == 'sasha@mail.ru'
     assert response_data['id'] == 1
+
+    return response_data
