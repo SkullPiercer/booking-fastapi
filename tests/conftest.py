@@ -6,6 +6,8 @@ from fastapi import status
 from httpx import ASGITransport, AsyncClient
 from unittest import mock
 
+from tests.constants import ROOT_USER_DATA
+
 # Мокаем фастами кэш (это вариант на случай работы с сервисами у которых нет in-memory бэкенда.)
 # Важно оставить мок именно тут, до того как мы импортировали всё остальное
 mock.patch(
@@ -129,11 +131,7 @@ async def room(db, hotel):
 async def root_user(async_client):
     response = await async_client.post(
         url='/users/register',
-        json={
-            'email': 'sasha@mail.ru',
-            'password': 'qweqwerty',
-            'confirm_password': 'qweqwerty'
-        },
+        json=ROOT_USER_DATA,
     )
     assert response.status_code == status.HTTP_200_OK
 
@@ -142,3 +140,14 @@ async def root_user(async_client):
     assert response_data['id'] == 1
 
     return response_data
+
+
+@pytest.fixture(scope='session')
+async def user_client(async_client, root_user):
+    user = await async_client.post(
+        url='/users/login',
+        json=ROOT_USER_DATA
+    )
+    assert user.cookies.get('access_token') is not None
+
+    yield user
