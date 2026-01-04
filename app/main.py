@@ -4,6 +4,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
+# from fastapi_cache.backends.inmemory import InMemoryBackend
 
 from app.api.routers import main_router
 from app.conectors.redis_connector import redis_manager
@@ -20,6 +21,9 @@ async def lifespan(app: FastAPI):
     yield
     await redis_manager.disconnect()
 
+# Один из вариантов решить проблему с кешированием в тестах
+# if settings.MODE == 'test':
+#     FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache")
 
 app = FastAPI(title=settings.APP_TITLE, lifespan=lifespan)
 

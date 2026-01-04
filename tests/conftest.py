@@ -10,7 +10,7 @@ from app.api.schemas.hotels import HotelCreateSchema
 from app.api.schemas.rooms import RoomsCreateSchema
 from app.api.schemas.users import UserCreateSchema
 from app.main import app
-from app.core.db import Base, engine_null_pool, async_session_maker_null_pool
+from app.core.db import Base, async_session_maker_null_pool, engine
 from app.core.config import get_settings
 from tests.utils import read_file
 
@@ -34,7 +34,7 @@ async def db():
 
 @pytest.fixture(scope='session', autouse=True)
 async def async_main(check_mode):
-    async with engine_null_pool.begin() as conn:
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 

@@ -14,8 +14,11 @@ class PreBase:
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
+params = {}
+if settings.MODE == 'test':
+    params = {'poolclass': NullPool}
 
-engine = create_async_engine(settings.DB_URL)
+engine = create_async_engine(settings.DB_URL, **params)
 engine_null_pool = create_async_engine(settings.DB_URL, poolclass=NullPool)
 
 Base = declarative_base(cls=PreBase)
