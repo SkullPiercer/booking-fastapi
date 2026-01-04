@@ -4,6 +4,14 @@ from random import randint
 import pytest
 from fastapi import status
 from httpx import ASGITransport, AsyncClient
+from unittest import mock
+
+# Мокаем фастами кэш (это вариант на случай работы с сервисами у которых нет in-memory бэкенда.)
+# Важно оставить мок именно тут, до того как мы импортировали всё остальное
+mock.patch(
+    'fastapi_cache.decorator.cache',
+    lambda *args, **kwargs: lambda f: f
+).start()
 
 from app.api.dep.db import DBManager
 from app.api.schemas.hotels import HotelCreateSchema
