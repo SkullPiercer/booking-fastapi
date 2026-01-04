@@ -120,7 +120,7 @@ async def room(db, hotel):
             title=f'Крутая комната {randint(1, 10000)}',
             description='Не менее крутое описание комнаты',
             price=1000,
-            quantity=10
+            quantity=3
         )
     )
     await db.commit()
