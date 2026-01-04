@@ -117,7 +117,7 @@ async def room(db, hotel):
     room = await db.rooms.create(
         RoomsCreateSchema(
             hotel_id=hotel.id,
-            title='Крутая комната',
+            title=f'Крутая комната {randint(1, 10000)}',
             description='Не менее крутое описание комнаты',
             price=1000,
             quantity=10
@@ -144,10 +144,10 @@ async def root_user(async_client):
 
 @pytest.fixture(scope='session')
 async def user_client(async_client, root_user):
-    user = await async_client.post(
+    await async_client.post(
         url='/users/login',
         json=ROOT_USER_DATA
     )
-    assert user.cookies.get('access_token') is not None
+    assert async_client.cookies.get('access_token') is not None
 
-    yield user
+    yield async_client

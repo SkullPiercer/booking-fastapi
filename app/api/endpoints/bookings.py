@@ -16,6 +16,13 @@ async def create_booking(
     room = await db.rooms.get_one_or_none(id=new_booking.room_id)
     if room is None:
         raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Комната не найдена'
+        )
+
+    hotel = await db.hotels.get_one_or_none(id=room.hotel_id)
+    if room is None:
+        raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail='Комнаты не существует'
     )
@@ -25,7 +32,7 @@ async def create_booking(
         price=price,
         **new_booking.model_dump()
     )
-    await db.bookings.create(_new_booking)
+    await db.bookings.add_booking(_new_booking, hotel.id)
     await db.commit()
     return new_booking
 
