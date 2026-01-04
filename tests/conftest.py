@@ -112,6 +112,11 @@ async def hotel(db):
     await db.commit()
     return hotel
 
+async def get_db_null_pool():
+    async with DBManager(session_factory=async_session_maker_null_pool) as db:
+        yield db
+
+
 @pytest.fixture()
 async def room(db, hotel):
     room = await db.rooms.create(

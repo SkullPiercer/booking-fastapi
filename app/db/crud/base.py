@@ -65,13 +65,13 @@ class CRUDBase:
         result = await self.session.execute(query)
         return [row[0] for row in result.fetchall()]
     
-    async def delete(self, **filter_by):
+    async def delete(self, delete_all: bool = False, **filter_by):
         query = delete(self.model).filter_by(**filter_by).returning(self.model)
         result = await self.session.execute(query)
         
         deleted_obj = result.scalars().all()
 
-        if len(deleted_obj) > 1:
+        if len(deleted_obj) > 1 and delete_all:
             raise HTTPException(
                 status.HTTP_422_UNPROCESSABLE_CONTENT,
                 'Фильтр отдает больше одного обьекта!'

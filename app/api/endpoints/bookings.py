@@ -37,14 +37,14 @@ async def create_booking(
     return new_booking
 
 
-@router.get('/bookings')
+@router.get('/all')
 async def get_all_bookings(
     db: DBDep
 ):
     return await db.bookings.get_list()
 
 
-@router.get('/bookings/me')
+@router.get('/me')
 async def get_my_bookings(
     db: DBDep,
     user_id: UserIdDep
