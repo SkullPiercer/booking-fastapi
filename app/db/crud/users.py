@@ -52,7 +52,7 @@ class CRUDUser(CRUDBase):
         if updated_obj is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'{self.model.__name__} с id={filter_by} не найден'
+                detail=f'{self.model.__name__} с id={user_id} не найден'
             )
 
         return self.mapper.map_to_domain_entity(updated_obj)

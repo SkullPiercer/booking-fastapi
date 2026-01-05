@@ -20,10 +20,10 @@ async def create_user(
 
         await db.commit()
         return new_user
-    except:
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Ошибка ввода логина или пароля'
+            detail=f'Ошибка ввода логина или пароля, {e}'
         )
 
 

@@ -1,6 +1,5 @@
 from datetime import date
 
-import sqlalchemy
 from fastapi import APIRouter, Body, HTTPException, status, Path, Query
 
 from app.api.schemas.facilities import RoomFacilityCreateSchema
@@ -14,7 +13,7 @@ from app.api.schemas.rooms import (
 from app.api.schemas.utils import PaginationDep
 from app.api.examples.rooms import room_examples
 from app.api.dep.db import DBDep
-from app.db.crud import facility
+
 
 router = APIRouter()
 

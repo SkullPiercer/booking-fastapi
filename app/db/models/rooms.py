@@ -1,7 +1,14 @@
+import typing
+
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
+
+
+if typing.TYPE_CHECKING:
+    from app.db.models import Facilities
+
 
 class Rooms(Base):
     title: Mapped[str] = mapped_column(unique=True)

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, SecretStr, model_validator
+from pydantic import BaseModel, EmailStr, model_validator
 
 class UserTokenSchema(BaseModel):
     email: EmailStr

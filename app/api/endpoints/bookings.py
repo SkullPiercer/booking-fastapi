@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
-import sqlalchemy
 
 from app.api.dep.db import DBDep
 from app.api.dep.user import UserIdDep
 from app.api.schemas.bookings import BookingCreateSchema, BookingRequestSchema
+
 
 router = APIRouter()
 
