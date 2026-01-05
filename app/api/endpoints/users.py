@@ -1,8 +1,8 @@
-from fastapi import APIRouter, HTTPException, status, Response, UploadFile
+from fastapi import APIRouter, HTTPException, status, Response
 
 from app.api.dep.db import DBDep
 from app.api.dep.user import UserIdDep
-from app.api.schemas.users import UserCreateSchema, UserTokenSchema
+from app.api.schemas.users import UserCreateSchema, UserTokenSchema, UserDBSchema
 from app.api.schemas.images import ImageCreateSchema
 from app.api.schemas.utils import DownloadFileDep, delete_image
 from app.core.user import AuthService
@@ -15,10 +15,17 @@ async def create_user(
     user: UserCreateSchema,
     db: DBDep
 ):
-    new_user = await db.users.create(user)
+    try:
+        new_user = await db.users.create(user)
 
-    await db.commit()
-    return new_user
+        await db.commit()
+        return new_user
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Ошибка ввода логина или пароля'
+        )
+
 
 @router.post('/login')
 async def create_user_token(
@@ -44,7 +51,7 @@ async def create_user_token(
     return {'access_token': access_token}
 
 
-@router.get('/me')
+@router.get('/me', response_model=UserDBSchema)
 async def get_data_auth_only(
     user_id: UserIdDep,
     db: DBDep
