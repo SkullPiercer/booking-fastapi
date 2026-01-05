@@ -6,9 +6,9 @@ from app.api.endpoints.facilities import router as facilities_router
 
 
 __all__ = [
-    'bookings_router',
-    'hotels_router',
-    'rooms_router',
-    'users_router',
-    'facilities_router',
+    "bookings_router",
+    "hotels_router",
+    "rooms_router",
+    "users_router",
+    "facilities_router",
 ]

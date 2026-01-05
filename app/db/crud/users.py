@@ -17,17 +17,17 @@ class CRUDUser(CRUDBase):
         if existing_user is not None:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail='Такой email уже зарегестрирован'
+                detail="Такой email уже зарегестрирован",
             )
 
         validated_data = obj.model_dump()
         query = (
             insert(self.model)
             .values(
-                email=validated_data['email'],
+                email=validated_data["email"],
                 hashed_password=AuthService().get_password_hash(
-                    validated_data['password']
-                )
+                    validated_data["password"]
+                ),
             )
             .returning(self.model)
         )
@@ -52,7 +52,7 @@ class CRUDUser(CRUDBase):
         if updated_obj is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'{self.model.__name__} с id={user_id} не найден'
+                detail=f"{self.model.__name__} с id={user_id} не найден",
             )
 
         return self.mapper.map_to_domain_entity(updated_obj)

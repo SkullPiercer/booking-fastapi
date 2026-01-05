@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    MODE: Literal['test', 'local', 'dev', 'prod']
+    MODE: Literal["test", "local", "dev", "prod"]
     APP_TITLE: str
 
     SECRET_KEY: str
@@ -27,10 +27,9 @@ class Settings(BaseSettings):
 
     @property
     def DB_URL(self):
-        return f'postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
-    
-    model_config = SettingsConfigDict(env_file='.env', extra='allow')
+        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
+    model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
 
 @lru_cache

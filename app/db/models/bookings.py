@@ -6,9 +6,10 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
 
+
 class Bookings(Base):
-    room_id: Mapped[int] = mapped_column(ForeignKey('rooms.id'))
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     date_from: Mapped[date]
     date_to: Mapped[date]
     price: Mapped[int]

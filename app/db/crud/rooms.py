@@ -7,16 +7,12 @@ from app.db.crud.mappers.rooms import RoomsMapper
 from app.db.crud.utils import get_ids_for_booking
 from app.db.models import Rooms
 
+
 class CRUDRooms(CRUDBase):
     model = Rooms
     mapper = RoomsMapper
 
-    async def get_filtered_by_date(
-        self,
-        hotel_id,
-        date_from,
-        date_to
-    ):
+    async def get_filtered_by_date(self, hotel_id, date_from, date_to):
         available_rooms = get_ids_for_booking(date_from, date_to, hotel_id)
 
         query = (
@@ -26,9 +22,9 @@ class CRUDRooms(CRUDBase):
         )
         result = await self.session.execute(query)
         return [
-                RoomWithRels.model_validate(obj, from_attributes=True)
-                for obj in result.scalars().all()
-            ]
+            RoomWithRels.model_validate(obj, from_attributes=True)
+            for obj in result.scalars().all()
+        ]
 
     async def get_one_or_none_with_facilities(self, **filter_by):
         query = (

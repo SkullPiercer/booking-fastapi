@@ -20,7 +20,7 @@ async def test_booking_CRUD(db, user, room):
             date_from=date(year=2020, month=1, day=1)
         ),
         partially=True,
-        id=new_booking_from_db.id
+        id=new_booking_from_db.id,
     )
     assert updated_booking is not None
     assert new_booking_from_db.id == updated_booking.id

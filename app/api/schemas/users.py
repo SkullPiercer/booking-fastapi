@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, model_validator
 
+
 class UserTokenSchema(BaseModel):
     email: EmailStr
     password: str
@@ -8,10 +9,10 @@ class UserTokenSchema(BaseModel):
 class UserCreateSchema(UserTokenSchema):
     confirm_password: str
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def check_passwords(self):
         if self.password != self.confirm_password:
-            raise ValueError('Пароли не совпадают!')
+            raise ValueError("Пароли не совпадают!")
         return self
 
 

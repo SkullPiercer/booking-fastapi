@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class FacilityCreateSchema(BaseModel):
     title: str
 

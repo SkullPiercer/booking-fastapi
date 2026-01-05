@@ -7,11 +7,11 @@ from app.db.crud.images import CRUDImages
 
 
 __all__ = [
-    'CRUDBookings',
-    'CRUDHotels',
-    'CRUDRooms',
-    'CRUDUser',
-    'CRUDFacility',
-    'CRUDRoomFacility',
-    'CRUDImages',
+    "CRUDBookings",
+    "CRUDHotels",
+    "CRUDRooms",
+    "CRUDUser",
+    "CRUDFacility",
+    "CRUDRoomFacility",
+    "CRUDImages",
 ]

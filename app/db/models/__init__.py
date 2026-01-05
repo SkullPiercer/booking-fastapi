@@ -6,11 +6,11 @@ from app.db.models.facilities import Facilities, RoomsFacilities
 from app.db.models.images import Images
 
 __all__ = [
-    'Hotels',
-    'Rooms',
-    'Users',
-    'Bookings',
-    'Facilities',
-    'RoomsFacilities',
-    'Images',
+    "Hotels",
+    "Rooms",
+    "Users",
+    "Bookings",
+    "Facilities",
+    "RoomsFacilities",
+    "Images",
 ]

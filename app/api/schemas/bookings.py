@@ -2,6 +2,7 @@ from datetime import date
 
 from pydantic import BaseModel, Field, ConfigDict
 
+
 class BookingRequestSchema(BaseModel):
     room_id: int = Field(..., gt=0)
     date_from: date

@@ -8,4 +8,6 @@ class Users(Base):
     email: Mapped[str] = mapped_column(String(200), unique=True)
     hashed_password: Mapped[str] = mapped_column(String(200))
 
-    image_id: Mapped[int] = mapped_column(ForeignKey('images.id'), nullable=True)
+    image_id: Mapped[int] = mapped_column(
+        ForeignKey("images.id"), nullable=True
+    )

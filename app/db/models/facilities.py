@@ -13,12 +13,12 @@ if typing.TYPE_CHECKING:
 class Facilities(Base):
     title: Mapped[str] = mapped_column(String(100))
 
-    rooms: Mapped[list['Rooms']] = relationship(
-        back_populates='facilities',
-        secondary='roomsfacilities',
+    rooms: Mapped[list["Rooms"]] = relationship(
+        back_populates="facilities",
+        secondary="roomsfacilities",
     )
 
 
 class RoomsFacilities(Base):
-    room_id: Mapped[int] = mapped_column(ForeignKey('rooms.id'))
-    facility_id: Mapped[int] = mapped_column(ForeignKey('facilities.id'))
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id"))
+    facility_id: Mapped[int] = mapped_column(ForeignKey("facilities.id"))

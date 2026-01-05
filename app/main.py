@@ -13,13 +13,17 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # При использовании FastAPI cache, connect можно убрать
     await redis_manager.connect()
-    FastAPICache.init(RedisBackend(redis_manager.redis), prefix="fastapi-cache")
+    FastAPICache.init(
+        RedisBackend(redis_manager.redis), prefix="fastapi-cache"
+    )
     yield
     await redis_manager.disconnect()
+
 
 # Один из вариантов решить проблему с кешированием в тестах
 # if settings.MODE == 'test':
@@ -30,5 +34,5 @@ app = FastAPI(title=settings.APP_TITLE, lifespan=lifespan)
 app.include_router(main_router)
 
 
-if __name__ == '__main__':
-    uvicorn.run('app.main:app', reload=True, port=8002)
+if __name__ == "__main__":
+    uvicorn.run("app.main:app", reload=True, port=8002)

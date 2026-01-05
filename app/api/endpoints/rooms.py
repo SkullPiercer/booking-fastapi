@@ -8,7 +8,7 @@ from app.api.schemas.rooms import (
     RoomsPutSchema,
     RoomsPatchSchema,
     RoomsRequestSchema,
-    RoomsPatchRequest
+    RoomsPatchRequest,
 )
 from app.api.schemas.utils import PaginationDep
 from app.api.examples.rooms import room_examples
@@ -17,30 +17,27 @@ from app.api.dep.db import DBDep
 
 router = APIRouter()
 
-@router.get('/{hotel_id}/rooms')
+
+@router.get("/{hotel_id}/rooms")
 async def get_rooms(
     hotel_id: int = Path(..., gt=0),
     date_from: date = Query(...),
     date_to: date = Query(...),
     *,
     pagination: PaginationDep,
-    db: DBDep
+    db: DBDep,
 ):
     result = await db.rooms.get_filtered_by_date(
-        hotel_id=hotel_id,
-        date_from=date_from,
-        date_to=date_to
+        hotel_id=hotel_id, date_from=date_from, date_to=date_to
     )
     if not result:
         raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail='Отель не найден!'
-            )
+            status_code=status.HTTP_404_NOT_FOUND, detail="Отель не найден!"
+        )
     return result
-    
 
 
-@router.get('/{hotel_id}/rooms/{room_id}')
+@router.get("/{hotel_id}/rooms/{room_id}")
 async def get_room_by_id(
     db: DBDep,
     hotel_id: int = Path(..., gt=0),
@@ -51,28 +48,29 @@ async def get_room_by_id(
     )
     if room is None:
         raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail='Комнаты с таким id не существует!'
-            )   
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Комнаты с таким id не существует!",
+        )
     return room
 
 
-@router.post('/{hotel_id}/rooms')
+@router.post("/{hotel_id}/rooms")
 async def create_room(
     db: DBDep,
     hotel_id: int = Path(..., gt=0),
-    new_room: RoomsRequestSchema = Body(..., openapi_examples=room_examples)
+    new_room: RoomsRequestSchema = Body(..., openapi_examples=room_examples),
 ):
     try:
-        _new_room = RoomsCreateSchema(hotel_id=hotel_id, **new_room.model_dump())
+        _new_room = RoomsCreateSchema(
+            hotel_id=hotel_id, **new_room.model_dump()
+        )
         room_db = await db.rooms.create(_new_room)
 
         if new_room.facilities_ids:
             # TODO: Добавить проверку на существование удобства
             rooms_facilities = [
-                RoomFacilityCreateSchema(
-                    room_id=room_db.id, facility_id=f_id
-                ) for f_id in new_room.facilities_ids
+                RoomFacilityCreateSchema(room_id=room_db.id, facility_id=f_id)
+                for f_id in new_room.facilities_ids
             ]
             await db.rooms_facilities.create_bulk(rooms_facilities)
 
@@ -82,17 +80,16 @@ async def create_room(
         print(e)
         # TODO: Разделить проверку на существование отеля и дубля title
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         )
 
 
-@router.post('/{hotel_id}/rooms/bulk')
+@router.post("/{hotel_id}/rooms/bulk")
 async def create_rooms(
     db: DBDep,
     hotel_id: int = Path(..., gt=0),
     *,
-    new_rooms: list[RoomsRequestSchema]
+    new_rooms: list[RoomsRequestSchema],
 ):
     try:
         _new_rooms = [
@@ -117,58 +114,58 @@ async def create_rooms(
         print(e)
         # TODO: Разделить проверку на существование отеля и дубля title
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         )
 
 
-@router.delete('/{hotel_id}/rooms/{room_id}')
+@router.delete("/{hotel_id}/rooms/{room_id}")
 async def delete_room(
-    db: DBDep,
-    hotel_id: int = Path(..., gt=0),
-    room_id: int = Path(..., gt=0)
+    db: DBDep, hotel_id: int = Path(..., gt=0), room_id: int = Path(..., gt=0)
 ):
     deleted_room = await db.rooms.delete(id=room_id, hotel_id=hotel_id)
     await db.commit()
     return deleted_room
 
 
-@router.patch('/{hotel_id}/rooms/{room_id}')
+@router.patch("/{hotel_id}/rooms/{room_id}")
 async def partially_update_room(
     hotel_id: int = Path(..., gt=0),
     room_id: int = Path(..., gt=0),
     *,
     new_room_data: RoomsPatchRequest,
-    db: DBDep
+    db: DBDep,
 ):
     # TODO: Добавить проверку на то что отель существует
     _new_room_data = RoomsPatchSchema(
-        hotel_id=hotel_id,
-        **new_room_data.model_dump(exclude_unset=True)
+        hotel_id=hotel_id, **new_room_data.model_dump(exclude_unset=True)
     )
     updated_room = await db.rooms.update(
         new_data=_new_room_data, partially=True, id=room_id, hotel_id=hotel_id
     )
 
     if new_room_data.facilities_ids is not None:
-        await db.rooms_facilities.update(room_id=updated_room.id, new_data=new_room_data.facilities_ids)
+        await db.rooms_facilities.update(
+            room_id=updated_room.id, new_data=new_room_data.facilities_ids
+        )
 
     await db.commit()
     return updated_room
 
 
-@router.put('/{hotel_id}/rooms/{room_id}')
+@router.put("/{hotel_id}/rooms/{room_id}")
 async def update_room(
     hotel_id: int = Path(..., gt=0),
     room_id: int = Path(..., gt=0),
     *,
     new_room_data: RoomsRequestSchema,
-    db: DBDep
+    db: DBDep,
 ):
-    _new_room_data = RoomsPutSchema(hotel_id=hotel_id, **new_room_data.model_dump())
-    updated_room = await db.rooms.update(
-        new_data=_new_room_data, id=room_id
+    _new_room_data = RoomsPutSchema(
+        hotel_id=hotel_id, **new_room_data.model_dump()
     )
-    await db.rooms_facilities.update(room_id=updated_room.id, new_data=new_room_data.facilities_ids)
+    updated_room = await db.rooms.update(new_data=_new_room_data, id=room_id)
+    await db.rooms_facilities.update(
+        room_id=updated_room.id, new_data=new_room_data.facilities_ids
+    )
     await db.commit()
     return updated_room

@@ -2,7 +2,15 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from app.db.crud import CRUDHotels, CRUDUser, CRUDRooms, CRUDBookings, CRUDFacility, CRUDRoomFacility, CRUDImages
+from app.db.crud import (
+    CRUDHotels,
+    CRUDUser,
+    CRUDRooms,
+    CRUDBookings,
+    CRUDFacility,
+    CRUDRoomFacility,
+    CRUDImages,
+)
 from app.core.db import async_session_maker
 
 

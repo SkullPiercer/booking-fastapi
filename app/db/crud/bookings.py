@@ -15,12 +15,12 @@ class CRUDBookings(CRUDBase):
     mapper = BookingsMapper
 
     async def get_bookings_with_today_checkin(self):
-        query = (
-            select(Bookings)
-            .filter(Bookings.date_from == date.today())
-        )
+        query = select(Bookings).filter(Bookings.date_from == date.today())
         res = await self.session.execute(query)
-        return [self.mapper.map_to_domain_entity(booking) for booking in res.scalars().all()]
+        return [
+            self.mapper.map_to_domain_entity(booking)
+            for booking in res.scalars().all()
+        ]
 
     async def add_booking(self, data: BookingCreateSchema, hotel_id: int):
         rooms_ids_to_get = get_ids_for_booking(
@@ -36,5 +36,5 @@ class CRUDBookings(CRUDBase):
             return new_booking
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Извините, на эту дату все занято ):'
+            detail="Извините, на эту дату все занято ):",
         )

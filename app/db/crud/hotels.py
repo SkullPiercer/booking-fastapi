@@ -14,13 +14,13 @@ class CRUDHotels(CRUDBase):
     mapper = HotelsMapper
 
     async def get_filtered_by_time(
-            self,
-            date_from: date,
-            date_to: date,
-            limit: int,
-            offset: int,
-            title: str | None = None,
-            location: str | None = None,
+        self,
+        date_from: date,
+        date_to: date,
+        limit: int,
+        offset: int,
+        title: str | None = None,
+        location: str | None = None,
     ):
         rooms_ids_to_get = get_ids_for_booking(date_from, date_to)
         hotels_ids = (
@@ -32,16 +32,16 @@ class CRUDHotels(CRUDBase):
         query = select(self.model).filter(Hotels.id.in_(hotels_ids))
 
         if location is not None:
-            query = query.filter(func.lower(Hotels.location).contains(location.strip().lower()))
+            query = query.filter(
+                func.lower(Hotels.location).contains(location.strip().lower())
+            )
 
         if title is not None:
-            query = query.filter(func.lower(Hotels.title).contains(title.strip().lower()))
+            query = query.filter(
+                func.lower(Hotels.title).contains(title.strip().lower())
+            )
 
-        query = (
-            query
-            .limit(limit)
-            .offset(offset)
-        )
+        query = query.limit(limit).offset(offset)
 
         res = await self.session.execute(query)
         return [

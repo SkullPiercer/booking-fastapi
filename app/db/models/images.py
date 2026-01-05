@@ -5,4 +5,6 @@ from app.core.db import Base
 
 
 class Images(Base):
-    file_path: Mapped[str | None] = mapped_column(None, String(100), unique=True)
+    file_path: Mapped[str | None] = mapped_column(
+        None, String(100), unique=True
+    )
