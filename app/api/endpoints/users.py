@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Response
 
 from app.api.dep.db import DBDep
 from app.api.dep.user import UserIdDep
+from app.api.exceptions.timed_base import ObjectExistsException
 from app.api.schemas.users import (
     UserCreateSchema,
     UserTokenSchema,
@@ -22,10 +23,11 @@ async def create_user(user: UserCreateSchema, db: DBDep):
 
         await db.commit()
         return new_user
-    except Exception as e:
+
+    except ObjectExistsException:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Ошибка ввода логина или пароля, {e}",
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Такой email уже зарегестрирован",
         )
 
 

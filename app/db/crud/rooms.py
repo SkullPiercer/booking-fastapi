@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from app.api.exceptions.timed_base import DateException, NotFoundException
 from app.api.schemas.rooms import RoomWithRels
 from app.db.crud.base import CRUDBase
 from app.db.crud.mappers.rooms import RoomsMapper
@@ -21,6 +22,10 @@ class CRUDRooms(CRUDBase):
             .filter(self.model.id.in_(available_rooms))
         )
         result = await self.session.execute(query)
+
+        if result.scalars().all() is None:
+            raise NotFoundException
+
         return [
             RoomWithRels.model_validate(obj, from_attributes=True)
             for obj in result.scalars().all()
@@ -33,4 +38,9 @@ class CRUDRooms(CRUDBase):
             .filter_by(**filter_by)
         )
         result = await self.session.execute(query)
-        return result.scalars().one_or_none()
+
+        _result = result.scalars().one_or_none()
+        if _result is None:
+            raise NotFoundException
+
+        return _result

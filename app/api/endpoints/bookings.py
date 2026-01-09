@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from app.api.dep.db import DBDep
 from app.api.dep.user import UserIdDep
+from app.api.exceptions.timed_base import ObjectNotFoundException, AllRoomsAreBookedException
 from app.api.schemas.bookings import BookingCreateSchema, BookingRequestSchema
 
 
@@ -12,10 +13,13 @@ router = APIRouter()
 async def create_booking(
     user_id: UserIdDep, new_booking: BookingRequestSchema, db: DBDep
 ):
-    room = await db.rooms.get_one_or_none(id=new_booking.room_id)
-    if room is None:
+    try:
+        room = await db.rooms.get_one(id=new_booking.room_id)
+
+    except ObjectNotFoundException:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Комната не найдена"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Номер не найден'
         )
 
     hotel = await db.hotels.get_one_or_none(id=room.hotel_id)
@@ -28,7 +32,15 @@ async def create_booking(
     _new_booking = BookingCreateSchema(
         user_id=user_id, price=price, **new_booking.model_dump()
     )
-    await db.bookings.add_booking(_new_booking, hotel.id)
+
+    try:
+        await db.bookings.add_booking(_new_booking, hotel.id)
+    except AllRoomsAreBookedException as ex:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=ex.detail,
+        )
+
     await db.commit()
     return new_booking
 

@@ -1,8 +1,11 @@
 from fastapi import status, HTTPException
 
+from pydantic import BaseModel
 from sqlalchemy import select, insert, delete, update
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.exceptions.timed_base import ObjectNotFoundException, NotFoundException, MoreThanOneObjectException
 from app.db.crud.mappers.base import DataMapper
 
 
@@ -20,10 +23,7 @@ class CRUDBase:
         obj = result.scalars().all()
 
         if not obj:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Объект {self.model} не найден",
-            )
+            raise NotFoundException
 
         if len(obj) > 1:
             raise HTTPException(
@@ -45,6 +45,15 @@ class CRUDBase:
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
         return result.scalars().one_or_none()
+
+    async def get_one(self, **filter_by) -> BaseModel:
+        query = select(self.model).filter_by(**filter_by)
+        result = await self.session.execute(query)
+        try:
+            model = result.scalar_one()
+        except NoResultFound:
+            raise ObjectNotFoundException
+        return self.mapper.map_to_domain_entity(model)
 
     async def create(self, obj):
         query = (
@@ -69,16 +78,10 @@ class CRUDBase:
         deleted_obj = result.scalars().all()
 
         if len(deleted_obj) > 1 and delete_all:
-            raise HTTPException(
-                status.HTTP_422_UNPROCESSABLE_CONTENT,
-                "Фильтр отдает больше одного обьекта!",
-            )
+            raise MoreThanOneObjectException
 
         if not deleted_obj:
-            raise HTTPException(
-                status.HTTP_404_NOT_FOUND,
-                f"{self.model.__name__} с id={filter_by} не найден",
-            )
+            raise ObjectNotFoundException
 
         return self.mapper.map_to_domain_entity(deleted_obj[0])
 
@@ -93,9 +96,6 @@ class CRUDBase:
         updated_obj = result.scalars().one_or_none()
 
         if updated_obj is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"{self.model.__name__} с id={filter_by} не найден",
-            )
+            raise ObjectNotFoundException
 
         return self.mapper.map_to_domain_entity(updated_obj)

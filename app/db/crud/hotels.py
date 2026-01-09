@@ -2,6 +2,7 @@ from datetime import date
 
 from sqlalchemy import select, func
 
+from app.api.exceptions.timed_base import DateException
 from app.db.crud.base import CRUDBase
 from app.db.crud.mappers.hotels import HotelsMapper
 from app.db.crud.utils import get_ids_for_booking

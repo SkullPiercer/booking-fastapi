@@ -3,6 +3,7 @@ from datetime import date
 from fastapi import HTTPException, status
 from sqlalchemy import select
 
+from app.api.exceptions.timed_base import AllRoomsAreBookedException
 from app.api.schemas.bookings import BookingCreateSchema
 from app.db.crud.base import CRUDBase
 from app.db.crud.mappers.bookings import BookingsMapper
@@ -34,7 +35,5 @@ class CRUDBookings(CRUDBase):
         if data.room_id in rooms_ids_to_book:
             new_booking = await self.create(data)
             return new_booking
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Извините, на эту дату все занято ):",
-        )
+
+        raise AllRoomsAreBookedException
