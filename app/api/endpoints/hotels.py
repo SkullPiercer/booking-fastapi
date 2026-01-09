@@ -4,7 +4,10 @@ from fastapi import APIRouter, Query, Body, Path, HTTPException, status
 from fastapi_cache.decorator import cache
 
 from app.api.examples import hotel_examples
-from app.api.exceptions.timed_base import NotFoundException, HotelNotFoundHTTPException
+from app.api.exceptions.timed_base import (
+    NotFoundException,
+    HotelNotFoundHTTPException,
+)
 from app.api.exceptions.utils import check_date_to_after_date_from
 from app.api.schemas.utils import PaginationDep
 from app.api.schemas.hotels import (

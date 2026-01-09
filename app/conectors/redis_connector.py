@@ -1,3 +1,5 @@
+import logging
+
 import redis.asyncio as redis
 
 from app.core.config import get_settings
@@ -10,7 +12,9 @@ class RedisConnector:
         self.redis = None
 
     async def connect(self):
+        logging.info(f"Попытка подключится к Redis: {self.url}:{self.port}")
         self.redis = await redis.Redis(host=self.url, port=self.port)
+        logging.info("Успешно подключен к Redis")
 
     async def disconnect(self):
         if self.redis:

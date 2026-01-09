@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -11,6 +12,7 @@ from app.conectors.redis_connector import redis_manager
 from app.core.config import get_settings
 
 
+logging.basicConfig(level=logging.INFO)
 settings = get_settings()
 
 
@@ -21,6 +23,7 @@ async def lifespan(app: FastAPI):
     FastAPICache.init(
         RedisBackend(redis_manager.redis), prefix="fastapi-cache"
     )
+    logging.info('FastAPI Cache подключен')
     yield
     await redis_manager.disconnect()
 

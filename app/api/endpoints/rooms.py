@@ -2,8 +2,12 @@ from datetime import date
 
 from fastapi import APIRouter, Body, HTTPException, status, Path, Query
 
-from app.api.exceptions.timed_base import NotFoundException, MoreThanOneObjectException, \
-    ObjectNotFoundException, RoomNotFoundHTTPException
+from app.api.exceptions.timed_base import (
+    NotFoundException,
+    MoreThanOneObjectException,
+    ObjectNotFoundException,
+    RoomNotFoundHTTPException,
+)
 from app.api.exceptions.utils import check_date_to_after_date_from
 from app.api.schemas.facilities import RoomFacilityCreateSchema
 from app.api.schemas.rooms import (
@@ -131,12 +135,12 @@ async def delete_room(
 
     except MoreThanOneObjectException as ex:
         raise HTTPException(
-            status_code=status.HTTP_400_NOT_FOUND,
-            detail=ex.detail
+            status_code=status.HTTP_400_NOT_FOUND, detail=ex.detail
         )
 
     except NotFoundException:
         raise RoomNotFoundHTTPException
+
 
 @router.patch("/{hotel_id}/rooms/{room_id}")
 async def partially_update_room(
@@ -175,7 +179,9 @@ async def update_room(
         hotel_id=hotel_id, **new_room_data.model_dump()
     )
     try:
-        updated_room = await db.rooms.update(new_data=_new_room_data, id=room_id)
+        updated_room = await db.rooms.update(
+            new_data=_new_room_data, id=room_id
+        )
         await db.rooms_facilities.update(
             room_id=updated_room.id, new_data=new_room_data.facilities_ids
         )

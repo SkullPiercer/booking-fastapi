@@ -5,7 +5,11 @@ from sqlalchemy import select, insert, delete, update
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.exceptions.timed_base import ObjectNotFoundException, NotFoundException, MoreThanOneObjectException
+from app.api.exceptions.timed_base import (
+    ObjectNotFoundException,
+    NotFoundException,
+    MoreThanOneObjectException,
+)
 from app.db.crud.mappers.base import DataMapper
 
 

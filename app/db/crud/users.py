@@ -1,3 +1,5 @@
+import logging
+
 from asyncpg import UniqueViolationError
 from fastapi import HTTPException, status
 from sqlalchemy import insert, select, update
@@ -32,8 +34,17 @@ class CRUDUser(CRUDBase):
             return self.mapper.map_to_domain_entity(result.scalars().first())
         except IntegrityError as ex:
             if isinstance(ex.orig.__cause__, UniqueViolationError):
+                logging.error(
+                    f"Ошибка обработки запроса: {type(ex.orig.__cause__)=}\n"
+                    f"При данных {obj.email}"
+                )
                 raise ObjectExistsException from ex
             else:
+                logging.error(
+                    f"Неизвестная ошибка: {type(ex.orig.__cause__)=}"
+                    f"Данные: {obj.email}"
+
+                )
                 raise ex
 
     async def get_user_with_pass(self, email: str):
