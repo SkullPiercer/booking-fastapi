@@ -6,7 +6,7 @@ from fastapi import status
     "email, password, confirm_password, status_code",
     [
         ("k0t@pes.com", "1234", "1234", status.HTTP_200_OK),
-        ("k0t@pes.com", "1234", "1234", status.HTTP_400_BAD_REQUEST),
+        ("k0t@pes.com", "1234", "1234", status.HTTP_409_CONFLICT),
         ("k0t1@pes.com", "1235", "1235", status.HTTP_200_OK),
         ("abcde", "1235", "1235", status.HTTP_422_UNPROCESSABLE_CONTENT),
         ("abcde@abc", "1235", "1235", status.HTTP_422_UNPROCESSABLE_CONTENT),

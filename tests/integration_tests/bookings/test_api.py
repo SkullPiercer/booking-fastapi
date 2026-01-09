@@ -11,7 +11,7 @@ from tests.conftest import get_db_null_pool
         (1, "2024-08-02", "2024-08-11", status.HTTP_200_OK),
         (1, "2024-08-03", "2024-08-12", status.HTTP_200_OK),
         (2, "2024-08-17", "2024-08-25", status.HTTP_200_OK),
-        (1, "2024-08-06", "2024-08-15", status.HTTP_400_BAD_REQUEST),
+        (1, "2024-08-06", "2024-08-15", status.HTTP_409_CONFLICT),
     ],
 )
 async def test_add_booking(
